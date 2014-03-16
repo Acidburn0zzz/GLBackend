@@ -237,3 +237,29 @@ class ReceiversCollection(BaseHandler):
         stats_counter('anon_requests')
         response = yield get_public_receiver_list(self.request.language)
         self.finish(response)
+
+
+class AllCollection(BaseHandler):
+    """
+    This interface return the whole Contexts, Receivers and Node public info
+    is the unified version of the classes implemented above, and permit to
+    receive the whole node public info with only one request
+    """
+
+    @transport_security_check("unauth")
+    @unauthenticated
+    @inlineCallbacks
+    def get(self, *uriargs):
+
+        stats_counter('anon_requests')
+
+        receivers = yield get_public_receiver_list(self.request.language)
+        contexts = yield get_public_context_list(self.request.language)
+        node = yield anon_serialize_node(self.current_user, self.request.language)
+
+        self.finish({
+            'receivers': receivers,
+            'contexts': contexts,
+            'node': node
+        })
+

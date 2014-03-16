@@ -28,6 +28,8 @@ from globaleaks.rest.requests import uuid_regexp
 
 spec = [
     ## Node Handler ##
+    (r'/all', node.AllCollection),
+
     (r'/node', node.InfoCollection),
 
     (r'/contexts', node.ContextsCollection),
