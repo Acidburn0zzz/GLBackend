@@ -7,7 +7,6 @@
 import os
 import shutil
 
-from Crypto import Random
 from twisted.internet.defer import inlineCallbacks
 
 from globaleaks.settings import transact, transact_ro, GLSetting
@@ -16,7 +15,7 @@ from globaleaks.handlers.authentication import authenticated, transport_security
 from globaleaks.rest import errors, requests
 from globaleaks.models import Receiver, Context, Node, Notification, User, ApplicationData
 from globaleaks import security, models
-from globaleaks.utils import utility, structures
+from globaleaks.utils import utility, structures, ping
 from globaleaks.utils.utility import log
 from globaleaks.db.datainit import import_memory_variables
 from globaleaks.security import gpg_options_parse
@@ -235,6 +234,9 @@ def update_node(store, request, wizard_done=True, language=GLSetting.memory_copy
 
 
     node.last_update = utility.datetime_now()
+
+    # every time an update_node happen, send a ping to LeakDirectory index
+    ping.do_ping(node.hidden_service)
 
     return admin_serialize_node(node, language)
 
