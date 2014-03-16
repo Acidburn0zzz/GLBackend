@@ -252,9 +252,9 @@ for txt1, l, txt2 in header:
 
 print '\n'
 print colorize('Welcome', 'CYAN'), colorize('to', 'YELLOW'), 'Globa'+colorize('Leaks', 'RED')
-print ("Alpha release of GlobaLeaks %s\n"
+print ("Alpha release of GlobaLeaks %s (Database format version %d)\n"
        "Actually, you may require our supports to makes GL works: irc.oftc.net #globaleaks can help you" %
-        GLSetting.version_string)
+       (GLSetting.version_string, DATABASE_VERSION) )
 print ("And don't forget to read docs in: https://github.com/globaleaks/GlobaLeaks/wiki\n")
 
 GLSetting.load_cmdline_options()
