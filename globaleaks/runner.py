@@ -55,10 +55,6 @@ def globaleaks_start():
     GLSetting.drop_privileges()
     GLSetting.check_directories()
 
-    if not GLSetting.accepted_hosts:
-        log.err("Missing a list of hosts usable to contact GLBackend, abort")
-        return False
-
     if not check_schema_version():
         return False
 
@@ -76,10 +72,6 @@ def globaleaks_start():
         log.msg("GLBackend is now running")
         for ip in GLSetting.bind_addresses:
             log.msg("Visit http://%s:%d to interact with me" % (ip, GLSetting.bind_port))
-
-        for host in GLSetting.accepted_hosts:
-            if host not in GLSetting.bind_addresses:
-                log.msg("Visit http://%s:%d to interact with me" % (host, GLSetting.bind_port))
 
         if tor_configured_hosts:
             for other in tor_configured_hosts:

@@ -36,29 +36,6 @@ from globaleaks.settings import GLSetting
 from globaleaks.rest import errors
 from globaleaks.security import GLSecureTemporaryFile, security_sleep
 
-def validate_host(host_key):
-    """
-    validate_host checks in the GLSetting list of valid 'Host:' values
-    and if matched, return True, else return False
-    Is used by all the Web handlers inherit from Cyclone
-    """
-    # hidden service has not a :port
-    if len(host_key) == 22 and host_key[16:22] == '.onion':
-        return True
-
-    # strip eventually port
-    hostchunk = str(host_key).split(":")
-    if len(hostchunk) == 2:
-        host_key = hostchunk[0]
-
-    if host_key in GLSetting.accepted_hosts:
-        return True
-
-    log.debug("Error in host requested: %s not accepted between: %s " %
-              (host_key, GLSetting.accepted_hosts))
-
-    return False
-
 
 class GLHTTPServer(HTTPConnection):
     file_upload = False
@@ -396,9 +373,6 @@ class BaseHandler(RequestHandler):
         # set the cookie as a side effect.
         self.xsrf_token
 
-        if not validate_host(self.request.host):
-            raise errors.InvalidHostSpecified
-
         # if 0 is infinite logging of the requests
         if GLSetting.http_log >= 0:
 
@@ -623,24 +597,10 @@ class BaseHandler(RequestHandler):
 
 
 class BaseStaticFileHandler(BaseHandler, StaticFileHandler):
-    def prepare(self):
-        """
-        This method is called by cyclone,and perform 'Host:' header
-        validation using the same 'validate_host' function used by
-        BaseHandler. but BaseHandler manage the REST API,..
-        BaseStaticFileHandler manage all the statically served files.
-        """
-        if not validate_host(self.request.host):
-            raise errors.InvalidHostSpecified
-
+    pass
 
 class BaseRedirectHandler(BaseHandler, RedirectHandler):
-    def prepare(self):
-        """
-        Same reason of StaticFileHandler
-        """
-        if not validate_host(self.request.host):
-            raise errors.InvalidHostSpecified
+    pass
 
 def anomaly_check(element):
     """

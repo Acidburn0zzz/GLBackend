@@ -17,9 +17,10 @@ import socket
 import pwd
 import grp
 import getpass
-import pickle
 import tempfile
 import transaction
+import struct
+import fcntl
 
 from ConfigParser import ConfigParser
 from optparse import OptionParser
@@ -33,6 +34,8 @@ from cyclone.web import HTTPError
 from cyclone.util import ObjectDict as OD
 
 from globaleaks import __version__, DATABASE_VERSION
+
+
 
 verbosity_dict = {
     'DEBUG': logging.DEBUG,
@@ -62,6 +65,26 @@ def stats_counter(element):
     GLSetting.anomalies_counter[element] += 1
 
 
+def get_ip_by_iface(iface):
+    """
+    Network utility: interface reading, its implemented in this
+    file because globaleaks/settings.py cannot perform complex import
+    """
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sockfd = sock.fileno()
+    SIOCGIFADDR = 0x8915
+
+    ifreq = struct.pack('16sH14s', iface, socket.AF_INET, '\x00'*14)
+    try:
+        res = fcntl.ioctl(sockfd, SIOCGIFADDR, ifreq)
+    except:
+        return None
+    ip = struct.unpack('16sH2x4s8x', res)[2]
+
+    return socket.inet_ntoa(ip)
+
+
 class GLSettingsClass:
 
     initialized = False
@@ -87,7 +110,10 @@ class GLSettingsClass:
         # threads sizes
         self.db_thread_pool_size = 1
 
-        self.bind_addresses = '127.0.0.1'
+        # default network exposition interface/
+        self.interfaces = [ 'lo' ]
+        # the address (probably 127.0.0.1) is get by the appropriate function
+        self.bind_addresses = []
 
         # bind port
         self.bind_port = 8082
@@ -141,9 +167,6 @@ class GLSettingsClass:
         self.reserved_names = OD()
         self.reserved_names.logo = "globaleaks_logo"
         self.reserved_names.css = "custom_stylesheet"
-
-        # acceptable 'Host:' header in HTTP request
-        self.accepted_hosts = "127.0.0.1,localhost"
 
         # default timings for scheduled jobs
         self.session_management_minutes_delta = 1 # runner.py function expects minutes
@@ -367,9 +390,9 @@ class GLSettingsClass:
     def load_cmdline_options(self):
         """
         This function is called by runner.py and operate in cmdline_options,
-        interpreted and filled in bin/startglobaleaks script.
+        interpreted and filled in bin/globaleaks script.
 
-        happen in startglobaleaks before the sys.argv is modified
+        happen in bin/globaleaks before the sys.argv is modified
         """
         assert self.cmdline_options is not None
 
@@ -379,16 +402,26 @@ class GLSettingsClass:
 
         self.loglevel = verbosity_dict[self.cmdline_options.loglevel]
 
-        self.bind_addresses = self.cmdline_options.ip.replace(" ", "").split(",")
+        self.interfaces = self.cmdline_options.interfaces.replace(" ", "").split(",")
+        self.bind_addresses = []
+        print "Exposing interfaces:",
+        for interface in self.interfaces:
+            exposed_ip = get_ip_by_iface(interface)
+
+            if exposed_ip:
+                print "[", interface, exposed_ip, "]",
+            else:
+                print "\nError! Interface", interface, "has not an IP address"
+                quit(-1)
+
+            self.bind_addresses.append(get_ip_by_iface(interface))
+        print ""
 
         if not self.validate_port(self.cmdline_options.port):
             quit(-1)
         self.bind_port = self.cmdline_options.port
 
         self.http_log = self.cmdline_options.http_log
-
-        self.accepted_hosts = list(set(self.bind_addresses + \
-                                       self.cmdline_options.host_list.replace(" ", "").split(",")))
 
         self.tor_socks_enable = not self.cmdline_options.disable_tor_socks
 

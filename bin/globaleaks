@@ -132,18 +132,13 @@ GLSetting.parser.add_option("-j", "--http-log", type="int",
     help="enable HTTP I/O logging and limit the number of logged Requests/Responses (-1=disabled, 0=unlimited) [default: %default]",
     dest="http_log", default=GLSetting.http_log)
 
-GLSetting.parser.add_option("-i", "--ip", type="string",
-    help="IP address(s) used for listening [default: %default]",
-    dest="ip", default=GLSetting.bind_addresses)
+GLSetting.parser.add_option("-i", "--interfaces", type="string",
+    help="network interfaces to bind HTTP server (comma separated) [default: lo]",
+    dest="interfaces", default=GLSetting.interfaces)
 
 GLSetting.parser.add_option("-p", "--port", type="int",
     help="TCP port used for listening [default: %default]",
     dest="port", default=GLSetting.bind_port)
-
-GLSetting.parser.add_option("-a", "--accept-host", type="string",
-    help="specify a list comma separated of hostname acceptable by the HTTP server"\
-            "If some hosts are specified, defaults are not more included in the allowed list) [default: %default]",
-    dest="host_list", default=GLSetting.accepted_hosts)
 
 GLSetting.parser.add_option("-o", "--socks-host", type="string",
     help="set Socks host to use for Tor [default: %default]",
