@@ -10,6 +10,7 @@ CREATE TABLE user (
     state VARCHAR NOT NULL CHECK (state IN ('disabled', 'to_be_activated', 'enabled')),
     last_login VARCHAR NOT NULL,
     last_update VARCHAR,
+    access_log VARCHAR NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (username)
 );

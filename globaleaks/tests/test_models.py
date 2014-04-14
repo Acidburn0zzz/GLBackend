@@ -47,6 +47,7 @@ class TestModels(helpers.TestGL):
         r = self.localization_set(self.dummyReceiver, Receiver, 'en')
         receiver_user = User(self.dummyReceiverUser)
         receiver_user.last_login = self.dummyReceiverUser['last_login']
+        receiver_user.access_log = []
 
         receiver_user.username = str(self.receiver_inc) + self.dummyReceiver['mail_address']
         receiver_user.password = self.dummyReceiverUser['password']
@@ -83,9 +84,11 @@ class TestModels(helpers.TestGL):
 
         receiver_user1 = User(self.dummyReceiverUser)
         receiver_user1.last_login = self.dummyReceiverUser['last_login']
+        receiver_user1.access_log = []
 
         receiver_user2 = User(self.dummyReceiverUser)
         receiver_user2.last_login = self.dummyReceiverUser['last_login']
+        receiver_user2.access_log = []
 
         # Avoid receivers with the same username!
         receiver_user1.username = unicode("xxx")
@@ -129,6 +132,7 @@ class TestModels(helpers.TestGL):
 
         receiver_user = User(self.dummyReceiverUser)
         receiver_user.last_login = self.dummyReceiverUser['last_login']
+        receiver_user.access_log = []
 
         # Avoid receivers with the same username!
         receiver_user.username = unicode("xxx")

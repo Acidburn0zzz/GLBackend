@@ -10,11 +10,11 @@ from storm.exceptions import NotOneError
 from cyclone.util import ObjectDict as OD
 
 from globaleaks.models import Node, User
-from globaleaks.settings import transact_ro, GLSetting
+from globaleaks.settings import transact, transact_ro, GLSetting
 from globaleaks.models import Receiver, WhistleblowerTip
 from globaleaks.handlers.base import BaseHandler
 from globaleaks.rest import errors, requests
-from globaleaks.utils.utility import is_expired, log, datetime_now, get_future_epoch, randint
+from globaleaks.utils.utility import is_expired, log, datetime_now, pretty_date_time, get_future_epoch, randint
 from globaleaks.third_party import rstr
 from globaleaks import security
 
@@ -193,7 +193,6 @@ def transport_security_check(wrapped_handler_role):
         return call_handler
     return wrapper
 
-
 @transact_ro # read only transact; manual commit on success needed
 def login_wb(store, receipt):
     """
@@ -216,10 +215,10 @@ def login_wb(store, receipt):
     log.debug("Whistleblower: Valid receipt")
     wb_tip.last_access = datetime_now()
     store.commit() # the transact was read only! on success we apply the commit()
+
     return unicode(wb_tip.id)
 
-
-@transact_ro  # read only transact; manual commit on success needed
+@transact
 def login_receiver(store, username, password):
     """
     This login receiver need to collect also the amount of unsuccessful
@@ -233,17 +232,34 @@ def login_receiver(store, username, password):
         log.debug("Receiver: Fail auth, username %s do not exists" % username)
         return False
 
+    if len(receiver_user.access_log) >= GLSetting.access_log_limit:
+        receiver_user.access_log = receiver_user.access_log[-(GLSetting.access_log_limit - 1):]
+
     if not security.check_password(password, receiver_user.password, receiver_user.salt):
         log.debug("Receiver login: Invalid password")
+
+        receiver_user.access_log.append({
+            'success': False,
+            'timestamp': pretty_date_time(datetime_now()),
+            'user_agent': None
+        })
+
         return False
+
     else:
         log.debug("Receiver: Authorized receiver %s" % username)
         receiver_user.last_login = datetime_now()
+        receiver_user.access_log.append({
+            'success': True,
+            'timestamp': pretty_date_time(datetime_now()),
+            'user_agent': None
+        })
+
         receiver = store.find(Receiver, (Receiver.user_id == receiver_user.id)).one()
-        store.commit() # the transact was read only! on success we apply the commit()
+
         return receiver.id
 
-@transact_ro  # read only transact; manual commit on success needed
+@transact
 def login_admin(store, username, password):
     """
     login_admin return the 'username' of the administrator
@@ -255,13 +271,28 @@ def login_admin(store, username, password):
         log.debug("Receiver: Fail auth, username %s do not exists" % username)
         return False
 
+    if len(admin_user.access_log) >= GLSetting.access_log_limit:
+        admin_user.access_log = admin_user.access_log[-(GLSetting.access_log_limit - 1):]
+
     if not security.check_password(password, admin_user.password, admin_user.salt):
         log.debug("Admin login: Invalid password")
+        admin_user.access_log.append({
+            'success': False,
+            'timestamp': pretty_date_time(datetime_now()),
+            'user_agent': None
+        })
+
         return False
+
     else:
         log.debug("Admin: Authorized admin %s" % username)
         admin_user.last_login = datetime_now()
-        store.commit() # the transact was read only! on success we apply the commit()
+        admin_user.access_log.append({
+            'success': True,
+            'timestamp': pretty_date_time(datetime_now()),
+            'user_agent': None
+        })
+
         return username
 
 class AuthenticationHandler(BaseHandler):

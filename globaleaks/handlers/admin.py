@@ -553,6 +553,8 @@ def create_receiver(store, request, language=GLSetting.memory_copy.default_langu
 
     receiver_user = models.User(receiver_user_dict)
     receiver_user.last_login = utility.datetime_null()
+    receiver_user.access_log = []
+
     store.add(receiver_user)
 
     receiver = Receiver(request)

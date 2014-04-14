@@ -118,6 +118,7 @@ class User(Model):
     role = Unicode()
     state = Unicode()
     last_login = DateTime()
+    access_log = Pickle()
  
     _roles = [ u'admin', u'receiver' ]
     _states = [ u'disabled', u'to_be_activated', u'enabled']

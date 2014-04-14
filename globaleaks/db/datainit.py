@@ -80,6 +80,7 @@ def initialize_node(store, results, only_node, templates, appdata):
     admin = models.User(admin_dict)
 
     admin.last_login = datetime_null()
+    admin.access_log = []
 
     store.add(admin)
 

@@ -59,6 +59,7 @@ class TestTransaction(helpers.TestGLWithPopulatedDB):
         r = self.localization_set(self.dummyReceiver, Receiver, 'en')
         receiver_user = User(self.dummyReceiverUser)
         receiver_user.last_login = self.dummyReceiverUser['last_login']
+        receiver_user.access_log = []
 
         # Avoid receivers with the same username!
         receiver_user.username = unicode("xxx")
@@ -78,6 +79,7 @@ class TestTransaction(helpers.TestGLWithPopulatedDB):
         r = self.localization_set(self.dummyReceiver, Receiver, 'en')
         receiver_user = User(self.dummyReceiverUser)
         receiver_user.last_login = self.dummyReceiverUser['last_login']
+        receiver_user.access_log = []
         store.add(receiver_user)
 
         receiver = Receiver(r)

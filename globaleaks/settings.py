@@ -153,6 +153,8 @@ class GLSettingsClass:
         self.anomaly_seconds_delta = 30           # runner.py function expects seconds
         self.stats_minutes_delta = 10             # runner.py function expects minutes
 
+        self.access_log_limit = 10
+
         self.www_form_urlencoded_maximum_size = 1024
 
         self.defaults = OD()
