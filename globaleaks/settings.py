@@ -742,6 +742,9 @@ class GLSettingsClass:
                     if not os.path.isfile("%s%s" % (keypath, result.group(1)) ):
                         print "Removing old encrypted file (lost key): %s" % path
                         os.remove(path)
+                else:
+                    print "Removing old untracked file: %s" % path
+                    os.remove(path)
             except Exception as excep:
                 print "Error while evaluating removal for %s: %s" % (path, excep)
 
